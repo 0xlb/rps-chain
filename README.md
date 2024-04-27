@@ -35,3 +35,5 @@ rpsd start # start the chain
 ## Useful links
 
 - [Cosmos-SDK Documentation](https://docs.cosmos.network/)
+- [Mini - A minimal Cosmos-SDK chain](https://github.com/cosmosregistry/chain-minimal)
+- [Cosmos-SDK module template](https://github.com/cosmosregistry/example)
