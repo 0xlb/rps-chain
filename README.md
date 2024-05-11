@@ -37,3 +37,16 @@ rpsd start # start the chain
 - [Cosmos-SDK Documentation](https://docs.cosmos.network/)
 - [Mini - A minimal Cosmos-SDK chain](https://github.com/cosmosregistry/chain-minimal)
 - [Cosmos-SDK module template](https://github.com/cosmosregistry/example)
+
+-----------
+
+# Lesson 1
+
+In this lesson we will include our module's [Protocol Buffer](https://protobuf.dev/) files.
+In these we'll add:
+
+- State objects: `Game` and `Params`
+- Msg and Query services with its corresponding messages
+
+Additionally, we'll setup the corresponding scripts to generate the
+go-proto files to use within our chain.
