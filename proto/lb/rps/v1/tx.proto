@@ -1,0 +1,57 @@
+syntax = "proto3";
+package lb.rps.v1;
+
+option go_package = "github.com/0xlb/rpschain/x/rps/types";
+
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "lb/rps/v1/rps.proto";
+import "gogoproto/gogo.proto";
+
+// Msg defines the module Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // CreateGame creates a game
+  rpc CreateGame(MsgCreateGame) returns (MsgCreateGameResponse);
+  // MakeMove submit a move to the specified game.
+  rpc MakeMove(MsgMakeMove) returns (MsgMakeMoveResponse);
+  // UpdateParams updates params of the rps module.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+}
+
+// MsgCreateGame defines the MsgCreateGame request type
+message MsgCreateGame {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  string creator = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string oponent = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  uint64 rounds = 3;
+}
+
+// MsgCreateGameResponse defines the MsgCreateGame response type
+message MsgCreateGameResponse {}
+
+// MsgMakeMove defines the Msg/MakeMove request type.
+message MsgMakeMove {
+  option (cosmos.msg.v1.signer) = "player";
+
+  // player is the message sender.
+  string player = 1;
+  uint64 game_index = 2;
+  string move = 3;
+}
+
+// MsgMakeMoveResponse defines the Msg/MakeMove response type.
+message MsgMakeMoveResponse {}
+
+// MsgUpdateParams defines the Msg/Update params request type
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  Params params = 2 [ (gogoproto.nullable) = false ];
+}
+
+// MsgUpdateParamsResponse defines the MsgUpdateParmas response type
+message MsgUpdateParamsResponse {};

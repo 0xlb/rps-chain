@@ -26,7 +26,7 @@ import (
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/0xlb/rps-chain/app"
+	"github.com/0xlb/rpschain/app"
 )
 
 // NewRootCmd creates a new root command for rpsd. It is called once in the

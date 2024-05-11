@@ -1,0 +1,15 @@
+syntax = "proto3";
+package lb.rps.v1;
+
+import "gogoproto/gogo.proto";
+import "lb/rps/v1/rps.proto";
+
+option go_package = "github.com/0xlb/rpschain/x/rps/types";
+
+// GenesisState defines the rps module's genesis state
+message GenesisState {
+  // params defines all the parameters for the rps module
+  Params params = 1 [ (gogoproto.nullable) = false ];
+  // games are the stored games in the module
+  repeated Game games = 2 [ (gogoproto.nullable) = false ];
+}

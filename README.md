@@ -25,7 +25,7 @@ In addition to learn how to build a chain thanks to `rpsd`, you can as well dire
 Install and run `rpsd`:
 
 ```sh
-git clone https://github.com/0xlb/rps-chain
+git clone https://github.com/0xlb/rpschain
 cd rps-chain
 make install # install the rpsd binary
 make init # initialize the chain

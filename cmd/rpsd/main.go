@@ -6,9 +6,9 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"github.com/0xlb/rps-chain/app"
-	"github.com/0xlb/rps-chain/app/params"
-	"github.com/0xlb/rps-chain/cmd/rpsd/cmd"
+	"github.com/0xlb/rpschain/app"
+	"github.com/0xlb/rpschain/app/params"
+	"github.com/0xlb/rpschain/cmd/rpsd/cmd"
 )
 
 func main() {
