@@ -1,6 +1,7 @@
 package rps
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -52,9 +53,9 @@ func (AppModule) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the example module.
 func (AppModule) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *gwruntime.ServeMux) {
-	// if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
-	// 	panic(err)
-	// }
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
 }
 
 // RegisterInterfaces registers interfaces and implementations of the example module.
@@ -68,7 +69,7 @@ func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 // RegisterServices registers a gRPC query service to respond to the module-specific gRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	// types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
 
 	// Register in place module state migration migrations
 	// m := keeper.NewMigrator(am.keeper)

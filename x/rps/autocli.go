@@ -8,7 +8,24 @@ import (
 // AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.
 func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 	return &autocliv1.ModuleOptions{
-		Query: nil,
+		Query: &autocliv1.ServiceCommandDescriptor{
+			Service: rpsv1.Query_ServiceDesc.ServiceName,
+			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
+				{
+					RpcMethod: "GetGame",
+					Use:       "game [index]",
+					Short:     "Get the current game with the provided game index",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
+						{ProtoField: "index"},
+					},
+				},
+				{
+					RpcMethod: "GetParams",
+					Use:       "params",
+					Short:     "Get the current module parameters",
+				},
+			},
+		},
 		Tx: &autocliv1.ServiceCommandDescriptor{
 			Service: rpsv1.Msg_ServiceDesc.ServiceName,
 			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
