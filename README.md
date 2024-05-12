@@ -40,13 +40,25 @@ rpsd start # start the chain
 
 -----------
 
-# Lesson 1
+# Lesson 2
 
-In this lesson we will include our module's [Protocol Buffer](https://protobuf.dev/) files.
-In these we'll add:
+In this lesson we will include all our module's boilerplate code needed
+to be used in a Cosmos-SDK chain:
 
-- State objects: `Game` and `Params`
-- Msg and Query services with its corresponding messages
+- `/types` directory contains all the module's types and stateless functions:
+    - Protobuf generated files that includes the store objects, genesis state, 
+    messages, events and `Query` and `Msg` services.
+    - `keys.go`: includes the module's store keys and module name.
+    - `codec.go`: includes the module's store keys and module name.
+    - `params.go`: includes functions to get the module's default params and params validation.
+- `/keeper` directory contains the keeper type definition and methods to read/write the module's store/s:
+    - `keeper.go`: includes the keeper type definition and function to instanciate it.
+    - `genesis.go`: includes keeper's functions related to genesis (`InitGenesis` & `ExportGenesis`).
+- `module.go`: contains the module type that complies with the interfaces required
+to allow the correct wiring of the custom module (`AppModuleBasic` & `AppModule`).
+- `depinject.go`: includes the necessary functions of the custom module to allow it to be wired up
+using dependency injection.
+- `autocli.go`: includes the `AutoCLIOptions` function of the custom module to register its corresponding
+CLI commands in the app.
 
-Additionally, we'll setup the corresponding scripts to generate the
-go-proto files to use within our chain.
+Additionally, we'll wire up our custom `x/rps` module with our app.
