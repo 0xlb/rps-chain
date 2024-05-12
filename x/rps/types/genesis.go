@@ -4,6 +4,7 @@ package types
 func NewGenesisState() *GenesisState {
 	return &GenesisState{
 		Params: DefaultParams(),
+		Games:  DefaultGames(),
 	}
 }
 
@@ -11,6 +12,17 @@ func NewGenesisState() *GenesisState {
 func (gs *GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
+	}
+
+	unique := make(map[uint64]bool)
+	for _, g := range gs.Games {
+		if _, ok := unique[g.GameNumber]; ok {
+			return ErrDuplicatedIndex
+		}
+		if err := g.Validate(); err != nil {
+			return err
+		}
+		unique[g.GameNumber] = true
 	}
 
 	return nil

@@ -12,6 +12,12 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 		return err
 	}
 
+	for _, g := range data.Games {
+		if err := k.Games.Set(ctx, g.GameNumber, g); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -22,7 +28,16 @@ func (k *Keeper) ExportGenesis(ctx context.Context) (*types.GenesisState, error)
 		return nil, err
 	}
 
+	var games []types.Game
+	if err := k.Games.Walk(ctx, nil, func(index uint64, g types.Game) (stop bool, err error) {
+		games = append(games, g)
+		return
+	}); err != nil {
+		return nil, err
+	}
+
 	return &types.GenesisState{
 		Params: params,
+		Games:  games,
 	}, nil
 }
