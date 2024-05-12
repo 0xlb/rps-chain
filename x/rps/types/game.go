@@ -104,6 +104,13 @@ func (g Game) Validate() error {
 	return g.ValidateScore()
 }
 
+func (game *Game) Ended() bool {
+	return game.Status == rules.StatusDraw ||
+		game.Status == rules.StatusPlayerAWins ||
+		game.Status == rules.StatusPlayerBWins ||
+		game.Status == rules.StatusCancelled
+}
+
 func getPlayerAddress(address string) (sdk.AccAddress, error) {
 	addr, err := sdk.AccAddressFromBech32(address)
 	return addr, errors.Wrapf(err, ErrInvalidAddress.Error(), address)
