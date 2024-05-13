@@ -6,7 +6,7 @@ option go_package = "github.com/0xlb/rpschain/x/rps/types";
 import "cosmos_proto/cosmos.proto";
 
 // Params defines the parameters of the module.
-message Params {}
+message Params { uint64 ttl = 1; }
 
 // Game defines the Rock, Paper & Scissors game object
 message Game {
@@ -18,4 +18,5 @@ message Game {
   repeated string player_a_moves = 6;
   repeated string player_b_moves = 7;
   repeated uint64 score = 8;
+  uint64 expiration_height = 9;
 }

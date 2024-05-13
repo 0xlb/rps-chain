@@ -14,8 +14,10 @@ service Msg {
 
   // CreateGame creates a game
   rpc CreateGame(MsgCreateGame) returns (MsgCreateGameResponse);
-  // MakeMove submit a move to the specified game.
+  // MakeMove submit a hashed move to the specified game.
   rpc MakeMove(MsgMakeMove) returns (MsgMakeMoveResponse);
+  // RevealMove submit a revealed move to the specified game.
+  rpc RevealMove(MsgRevealMove) returns (MsgRevealMoveResponse);
   // UpdateParams updates params of the rps module.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
@@ -44,6 +46,20 @@ message MsgMakeMove {
 
 // MsgMakeMoveResponse defines the Msg/MakeMove response type.
 message MsgMakeMoveResponse {}
+
+// MsgRevealMove defines the Msg/RevealMove request type.
+message MsgRevealMove {
+  option (cosmos.msg.v1.signer) = "player";
+
+  // player is the message sender.
+  string player = 1;
+  uint64 game_index = 2;
+  string revealed_move = 3;
+  string salt = 4;
+}
+
+// MsgRevealMoveResponse defines the Msg/RevealMove response type.
+message MsgRevealMoveResponse {}
 
 // MsgUpdateParams defines the Msg/Update params request type
 message MsgUpdateParams {

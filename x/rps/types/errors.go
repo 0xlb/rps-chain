@@ -15,4 +15,5 @@ var (
 	ErrGameEnded          = errors.Register(ModuleName, 10, "game has ended")
 	ErrInvalidPlayer      = errors.Register(ModuleName, 11, "invalid player")
 	ErrPlayerCantMakeMove = errors.Register(ModuleName, 12, "player cannot make move")
+	ErrInvalidTTL         = errors.Register(ModuleName, 13, "ttl should be greater than 0")
 )

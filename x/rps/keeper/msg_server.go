@@ -22,13 +22,20 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 }
 
 func (ms msgServer) CreateGame(ctx context.Context, msg *types.MsgCreateGame) (*types.MsgCreateGameResponse, error) {
+
+	params, err := ms.k.Params.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	newGame := types.Game{
-		GameNumber: ms.k.NextGameNumber(ctx),
-		PlayerA:    msg.Creator,
-		PlayerB:    msg.Oponent,
-		Rounds:     msg.Rounds,
-		Status:     rules.StatusWaiting,
-		Score:      []uint64{0, 0},
+		GameNumber:       ms.k.NextGameNumber(ctx),
+		PlayerA:          msg.Creator,
+		PlayerB:          msg.Oponent,
+		Rounds:           msg.Rounds,
+		Status:           rules.StatusWaiting,
+		Score:            []uint64{0, 0},
+		ExpirationHeight: uint64(sdkCtx.BlockHeight()) + params.Ttl,
 	}
 
 	if err := newGame.Validate(); err != nil {
@@ -39,11 +46,10 @@ func (ms msgServer) CreateGame(ctx context.Context, msg *types.MsgCreateGame) (*
 		return nil, err
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx.EventManager().EmitTypedEvent(&types.EventCreateGame{
 		GameNumber: newGame.GameNumber,
-		PlayerA: newGame.PlayerA,
-		PlayerB: newGame.PlayerB,
+		PlayerA:    newGame.PlayerA,
+		PlayerB:    newGame.PlayerB,
 	})
 
 	return &types.MsgCreateGameResponse{}, nil
@@ -123,6 +129,11 @@ func (ms msgServer) MakeMove(ctx context.Context, msg *types.MsgMakeMove) (*type
 	}
 
 	return &types.MsgMakeMoveResponse{}, nil
+}
+
+func (ms msgServer) RevealMove(context.Context, *types.MsgRevealMove) (*types.MsgRevealMoveResponse, error) {
+	// TODO
+	return nil, nil
 }
 
 func (ms msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
