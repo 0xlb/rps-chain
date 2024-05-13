@@ -49,6 +49,17 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 						{ProtoField: "move"},
 					},
 				},
+				{
+					RpcMethod: "RevealMove",
+					Use:       "reveal-move game_index revealed_move salt",
+					Short:     "Reveals a submitted commitment for a specific Rock, Paper & Scissors game",
+					Long:      "Reveals a submitted commitment for a specific Rock, Paper & Scissors game. To do this, need to provide the valid move and the salt used for generating the hash. Valid move options 'Rock', 'Paper' or 'Scissors'",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
+						{ProtoField: "game_index"},
+						{ProtoField: "revealed_move"},
+						{ProtoField: "salt"},
+					},
+				},
 			},
 		},
 	}

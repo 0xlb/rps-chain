@@ -56,11 +56,6 @@ func (ms msgServer) CreateGame(ctx context.Context, msg *types.MsgCreateGame) (*
 }
 
 func (ms msgServer) MakeMove(ctx context.Context, msg *types.MsgMakeMove) (*types.MsgMakeMoveResponse, error) {
-	// Is a valid move
-	if ok := rules.IsValidMove(msg.Move); !ok {
-		return nil, types.ErrInvalidMove
-	}
-
 	// Game exists
 	game, err := ms.k.Games.Get(ctx, msg.GameIndex)
 	if err != nil {
@@ -68,39 +63,53 @@ func (ms msgServer) MakeMove(ctx context.Context, msg *types.MsgMakeMove) (*type
 	}
 
 	// Game Status is InProgress or Waiting
-	if game.Status != rules.StatusInProgress && game.Status != rules.StatusWaiting {
+	if game.Ended() {
 		return nil, types.ErrGameEnded
 	}
 
-	// Player is in the game
-	var player rules.Player
-	switch msg.Player {
-	case game.PlayerA:
-		player = rules.PlayerA
-		game.PlayerAMoves = append(game.PlayerAMoves, msg.Move)
-	case game.PlayerB:
-		player = rules.PlayerB
-		game.PlayerBMoves = append(game.PlayerBMoves, msg.Move)
+	if err := game.AddPlayerMove(msg.Player, msg.Move); err != nil {
+		return nil, err
 	}
 
-	if player == rules.InvalidPlayer {
-		return nil, types.ErrInvalidPlayer
+	// game status is InProgress
+	game.Status = rules.StatusInProgress
+
+	if err := game.Validate(); err != nil {
+		return nil, err
+	}
+	if err := ms.k.Games.Set(ctx, game.GameNumber, game); err != nil {
+		return nil, err
 	}
 
-	// Can make the move - depends on:
-	//  - rules: game status, rounds count, other player moves
-	playerAMovesCount, playerBMovesCount := len(game.PlayerAMoves), len(game.PlayerBMoves)
-	if ok := rules.CanMakeMove(player, playerAMovesCount, playerBMovesCount); !ok {
-		return nil, types.ErrPlayerCantMakeMove
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitTypedEvent(&types.EventMakeMove{GameNumber: game.GameNumber, Player: msg.Player, Move: msg.Move})
+
+	return &types.MsgMakeMoveResponse{}, nil
+}
+
+func (ms msgServer) RevealMove(ctx context.Context, msg *types.MsgRevealMove) (*types.MsgRevealMoveResponse, error) {
+	// Game exists
+	game, err := ms.k.Games.Get(ctx, msg.GameIndex)
+	if err != nil {
+		return nil, err
+	}
+
+	// Game Status is InProgress or Waiting
+	if game.Ended() {
+		return nil, types.ErrGameEnded
+	}
+
+	if err := game.RevealPlayerMove(msg.Player, msg.RevealedMove, msg.Salt); err != nil {
+		return nil, err
 	}
 
 	// Get the new status of the game
 	// If playerAMovesCount == playerBMovesCount, then a round is completed
 	// So we calculate the result
-	if playerAMovesCount == playerBMovesCount {
+	if game.IsRoundRevealed() {
 		playerAResult := rules.DetermineRoundWinner(
-			rules.Choice(game.PlayerAMoves[playerAMovesCount-1]),
-			rules.Choice(game.PlayerBMoves[playerBMovesCount-1]),
+			rules.Choice(game.GetPlayerALastMove()),
+			rules.Choice(game.GetPlayerBLastMove()),
 		)
 		// game.Score stores the playerA and playerB wins in an array
 		if playerAResult == rules.Win {
@@ -121,19 +130,15 @@ func (ms msgServer) MakeMove(ctx context.Context, msg *types.MsgMakeMove) (*type
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitTypedEvent(&types.EventMakeMove{GameNumber: game.GameNumber, Player: msg.Player, Move: msg.Move})
+	sdkCtx.EventManager().EmitTypedEvent(&types.EventRevealMove{GameNumber: game.GameNumber, Player: msg.Player, RevealedMove: msg.RevealedMove})
 
+	// remove from active games queue if corresponds
 	if game.Ended() {
 		// game has ended. Emit the game ended event
 		sdkCtx.EventManager().EmitTypedEvent(&types.EventEndGame{GameNumber: game.GameNumber, Status: game.Status})
 	}
 
-	return &types.MsgMakeMoveResponse{}, nil
-}
-
-func (ms msgServer) RevealMove(context.Context, *types.MsgRevealMove) (*types.MsgRevealMoveResponse, error) {
-	// TODO
-	return nil, nil
+	return &types.MsgRevealMoveResponse{}, nil
 }
 
 func (ms msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
