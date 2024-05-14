@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"context"
-
 	"cosmossdk.io/collections"
 	v2 "github.com/0xlb/rpschain/x/rps/migrations/v2"
 	"github.com/0xlb/rpschain/x/rps/types"
