@@ -12,8 +12,8 @@ $BIN keys add alice
 $BIN keys add bob
 $BIN init test --chain-id $CHAIN_ID --default-denom rps
 # update genesis
-$BIN genesis add-genesis-account alice 10000000rps --keyring-backend test
-$BIN genesis add-genesis-account bob 1000rps --keyring-backend test
+$BIN genesis add-genesis-account alice 10000000000rps --keyring-backend test
+$BIN genesis add-genesis-account bob 1000000rps --keyring-backend test
 # update governance params (voting period) for local testing
 sed -i.bak 's/"voting_period": "172800s"/"voting_period": "10s"/g' $GEN_FILE 
 sed -i.bak 's/"expedited_voting_period": "86400s"/"expedited_voting_period": "5s"/g' $GEN_FILE 
