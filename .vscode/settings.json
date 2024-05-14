@@ -5,7 +5,8 @@
         },
         "local": {
             "baseUrl": "http://127.0.0.1:1317",
-            "cometBFTUrl": "http://127.0.0.1:26657"
+            "cometBFTUrl": "http://127.0.0.1:26657",
+            "cometBFTmetrics": "http://127.0.0.1:26660"
         },
         "testnet": {
             "baseUrl": "https://your-testnet-node.com:1317"

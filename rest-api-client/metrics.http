@@ -1,0 +1,9 @@
+# RPS :: CometBFT Metrics
+GET {{cometBFTmetrics}}/metrics HTTP/1.1
+Content-Type: application/json
+
+### 
+
+# RPS :: App Metrics
+GET {{baseUrl}}/metrics HTTP/1.1
+Content-Type: application/json
