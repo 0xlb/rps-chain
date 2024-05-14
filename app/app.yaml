@@ -8,7 +8,7 @@ modules:
       # there is nothing left over in the validator fee pool, so as to keep the CanWithdrawInvariant invariant.
       # NOTE: staking module is required if HistoricalEntries param > 0
       begin_blockers: [distribution, staking]
-      end_blockers: [gov, staking]
+      end_blockers: [gov, staking, rps]
       # NOTE: The genutils module must occur after staking so that pools are properly initialized with tokens from genesis accounts.
       # NOTE: The genutils module must also occur after auth so that it can access the params from auth.
       init_genesis: [auth, bank, distribution, staking, genutil, gov, upgrade, rps]

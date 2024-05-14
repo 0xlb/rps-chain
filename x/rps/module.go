@@ -19,9 +19,10 @@ import (
 )
 
 var (
-	_ module.AppModuleBasic = AppModule{}
-	_ module.HasGenesis     = AppModule{}
-	_ appmodule.AppModule   = AppModule{}
+	_ module.AppModuleBasic   = AppModule{}
+	_ module.HasGenesis       = AppModule{}
+	_ appmodule.HasEndBlocker = AppModule{}
+	_ appmodule.AppModule     = AppModule{}
 )
 
 // ConsensusVersion defines the current module consensus version.
@@ -113,4 +114,8 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 	}
 
 	return cdc.MustMarshalJSON(gs)
+}
+
+func (am AppModule) EndBlock(ctx context.Context) error {
+	return am.keeper.EndBlocker(ctx)
 }

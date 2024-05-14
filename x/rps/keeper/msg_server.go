@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/0xlb/rpschain/x/rps/rules"
@@ -43,6 +44,11 @@ func (ms msgServer) CreateGame(ctx context.Context, msg *types.MsgCreateGame) (*
 	}
 
 	if err := ms.k.Games.Set(ctx, newGame.GameNumber, newGame); err != nil {
+		return nil, err
+	}
+
+	err = ms.k.ActiveGamesQueue.Set(ctx, collections.Join(newGame.ExpirationHeight, newGame.GameNumber))
+	if err != nil {
 		return nil, err
 	}
 
@@ -134,6 +140,10 @@ func (ms msgServer) RevealMove(ctx context.Context, msg *types.MsgRevealMove) (*
 
 	// remove from active games queue if corresponds
 	if game.Ended() {
+		err := ms.k.ActiveGamesQueue.Remove(ctx, collections.Join(game.ExpirationHeight, game.GameNumber))
+		if err != nil {
+			return nil, err
+		}
 		// game has ended. Emit the game ended event
 		sdkCtx.EventManager().EmitTypedEvent(&types.EventEndGame{GameNumber: game.GameNumber, Status: game.Status})
 	}
