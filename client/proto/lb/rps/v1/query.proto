@@ -1,0 +1,35 @@
+syntax = "proto3";
+package lb.rps.v1;
+
+option go_package = "github.com/0xlb/rpschain/x/rps/types";
+
+import "google/api/annotations.proto";
+import "cosmos/query/v1/query.proto";
+import "lb/rps/v1/rps.proto";
+
+// Query is the query service for the rps module
+service Query {
+  // GetGame returns the game at the requested index
+  rpc GetGame(QueryGetGameRequest) returns (QueryGetGameResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/rps/v1/game/{index}";
+  };
+  // GetParams returns the RPS module params
+  rpc GetParams(QueryGetParamsRequest) returns (QueryGetParamsResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/rps/v1/params";
+  };
+}
+
+// QueryGetGameRequest is the request type for the Query/GetGame RPC method
+message QueryGetGameRequest { uint64 index = 1; }
+
+// QueryGetGameResponse is the response type for the Query/GetGame RPC method
+message QueryGetGameResponse { Game game = 1; }
+
+// QueryGetParamsRequest is the request type for the Query/GetParams RPC method
+message QueryGetParamsRequest {}
+
+// QueryGetParamsResponse is the response type for the Query/GetParams RPC
+// method
+message QueryGetParamsResponse { Params param = 1; }
