@@ -19,6 +19,17 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=rps \
 
 BUILD_FLAGS := -ldflags '$(ldflags)'
 
+# check for nostrip option
+ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
+	BUILD_FLAGS += -trimpath
+endif
+
+# check if no optimization option is passed
+# used for remote debugging
+ifneq (,$(findstring nooptimization,$(COSMOS_BUILD_OPTIONS)))
+	BUILD_FLAGS += -gcflags "all=-N -l"
+endif
+
 ###########
 # Install #
 ###########

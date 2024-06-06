@@ -41,7 +41,7 @@ func (s *KeeperTestSuite) TestGetGame() {
 				Status:           rules.StatusWaiting,
 				Rounds:           uint64(3),
 				Score:            []uint64{0, 0},
-				ExpirationHeight: uint64(10),
+				ExpirationHeight: uint64(types.DefaultTTL),
 			},
 		},
 	}
