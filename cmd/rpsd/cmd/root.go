@@ -4,13 +4,12 @@ import (
 	"os"
 	"time"
 
+	dbm "github.com/cosmos/cosmos-db"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/spf13/cobra"
 
-	"cosmossdk.io/client/v2/autocli"
 	clientv2keyring "cosmossdk.io/client/v2/autocli/keyring"
 	"cosmossdk.io/core/address"
-	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -18,44 +17,33 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/cosmos/cosmos-sdk/server"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/0xlb/rpschain/app"
+	"github.com/0xlb/rpschain/app/params"
 )
 
 // NewRootCmd creates a new root command for rpsd. It is called once in the
 // main function.
 func NewRootCmd() *cobra.Command {
-	var (
-		txConfigOpts       tx.ConfigOptions
-		autoCliOpts        autocli.AppOptions
-		moduleBasicManager module.BasicManager
-		clientCtx          client.Context
-	)
-
-	if err := depinject.Inject(
-		depinject.Configs(app.AppConfig(),
-			depinject.Supply(
-				log.NewNopLogger(),
-			),
-			depinject.Provide(
-				ProvideClientContext,
-				ProvideKeyring,
-			),
-		),
-		&txConfigOpts,
-		&autoCliOpts,
-		&moduleBasicManager,
-		&clientCtx,
-	); err != nil {
+	tempApp, err := app.NewRPSApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.NewAppOptionsWithFlagHome(tempDir()))
+	encodingConfig := params.EncodingConfig{
+		InterfaceRegistry: tempApp.InterfaceRegistry(),
+		Codec:             tempApp.AppCodec(),
+		TxConfig:          tempApp.TxConfig(),
+		Amino:             tempApp.LegacyAmino(),
+	}
+	if err != nil {
 		panic(err)
 	}
+
+	clientCtx := ProvideClientContext(encodingConfig.Codec, encodingConfig.InterfaceRegistry, encodingConfig.TxConfig, encodingConfig.Amino)
 
 	rootCmd := &cobra.Command{
 		Use:   "rpsd",
@@ -76,22 +64,25 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			// sign mode textual is only available in online mode
-			if !clientCtx.Offline {
-				// This needs to go after ReadFromClientConfig, as that function ets the RPC client needed for SIGN_MODE_TEXTUAL.
-				txConfigOpts.EnabledSignModes = append(txConfigOpts.EnabledSignModes, signing.SignMode_SIGN_MODE_TEXTUAL)
-				txConfigOpts.TextualCoinMetadataQueryFn = txmodule.NewGRPCCoinMetadataQueryFn(clientCtx)
-				txConfigWithTextual, err := tx.NewTxConfigWithOptions(codec.NewProtoCodec(clientCtx.InterfaceRegistry), txConfigOpts)
-				if err != nil {
-					return err
-				}
-
-				clientCtx = clientCtx.WithTxConfig(txConfigWithTextual)
+			// This needs to go after ReadFromClientConfig, as that function
+			// sets the RPC client needed for SIGN_MODE_TEXTUAL.
+			enabledSignModes := append(tx.DefaultSignModes, signing.SignMode_SIGN_MODE_TEXTUAL) //nolint:gocritic // we know we aren't appending to the same slice
+			txConfigOpts := tx.ConfigOptions{
+				EnabledSignModes:           enabledSignModes,
+				TextualCoinMetadataQueryFn: txmodule.NewGRPCCoinMetadataQueryFn(clientCtx),
 			}
-
+			txConfigWithTextual, err := tx.NewTxConfigWithOptions(
+				codec.NewProtoCodec(encodingConfig.InterfaceRegistry),
+				txConfigOpts,
+			)
+			if err != nil {
+				return err
+			}
+			clientCtx = clientCtx.WithTxConfig(txConfigWithTextual)
 			if err := client.SetCmdClientContextHandler(clientCtx, cmd); err != nil {
 				return err
 			}
+			clientCtx = clientCtx.WithTxConfig(txConfigWithTextual)
 
 			// overwrite the minimum gas price from the app configuration
 			srvCfg := serverconfig.DefaultConfig()
@@ -106,9 +97,11 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	initRootCmd(rootCmd, clientCtx.TxConfig, moduleBasicManager)
+	initRootCmd(rootCmd, clientCtx.TxConfig, tempApp.BasicModuleManager)
 
-	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+	opts := tempApp.AutoCliOpts()
+	opts.ClientCtx = clientCtx
+	if err := opts.EnhanceRootCommand(rootCmd); err != nil {
 		panic(err)
 	}
 
@@ -144,4 +137,14 @@ func ProvideKeyring(clientCtx client.Context, addressCodec address.Codec) (clien
 	}
 
 	return keyring.NewAutoCLIKeyring(kb)
+}
+
+func tempDir() string {
+	dir, err := os.MkdirTemp("", "rps")
+	if err != nil {
+		dir = app.DefaultNodeHome
+	}
+	defer os.RemoveAll(dir)
+
+	return dir
 }

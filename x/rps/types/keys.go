@@ -2,7 +2,10 @@ package types
 
 import "cosmossdk.io/collections"
 
-const ModuleName = "rps"
+const (
+	ModuleName = "rps"
+	StoreKey   = ModuleName
+)
 
 var (
 	ParamsKey           = collections.NewPrefix(0)

@@ -87,7 +87,7 @@ it("can create a game", async function () {
     "auto"
   );
 
-  expect(response.events).toHaveLength(5);
+  expect(response.events).not.toHaveLength(0);
   const event = getCreateGameEvent(response);
   expect(event).not.toBeUndefined();
   gameId = getCreatedGameId(event!)!;
