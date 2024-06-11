@@ -5,7 +5,7 @@ source ./e2e/.env
 
 rm -r ~/.rpsd || true
 BIN=$(which rpsd)
-CHAIN_ID="rps-1"
+CHAIN_ID="lb-rps-1"
 GEN_FILE="$HOME"/.rpsd/config/genesis.json
 
 # configure rpsd
