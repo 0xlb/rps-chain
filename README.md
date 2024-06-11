@@ -40,25 +40,119 @@ rpsd start # start the chain
 
 -----------
 
-# Lesson 2
+## Unlocking the Interchain potential
 
-In this lesson we will include all our module's boilerplate code needed
-to be used in a Cosmos-SDK chain:
+Connect your chain to the Interchain ecosystem using the 
+[go relayer](https://github.com/cosmos/relayer) (make sure to use a version >v2.5.0)
 
-- `/types` directory contains all the module's types and stateless functions:
-    - Protobuf generated files that includes the store objects, genesis state, 
-    messages, events and `Query` and `Msg` services.
-    - `keys.go`: includes the module's store keys and module name.
-    - `codec.go`: includes the module's store keys and module name.
-    - `params.go`: includes functions to get the module's default params and params validation.
-- `/keeper` directory contains the keeper type definition and methods to read/write the module's store/s:
-    - `keeper.go`: includes the keeper type definition and function to instanciate it.
-    - `genesis.go`: includes keeper's functions related to genesis (`InitGenesis` & `ExportGenesis`).
-- `module.go`: contains the module type that complies with the interfaces required
-to allow the correct wiring of the custom module (`AppModuleBasic` & `AppModule`).
-- `depinject.go`: includes the necessary functions of the custom module to allow it to be wired up
-using dependency injection.
-- `autocli.go`: includes the `AutoCLIOptions` function of the custom module to register its corresponding
-CLI commands in the app.
+### Initialize the relayer's configuration directory
 
-Additionally, we'll wire up our custom `x/rps` module with our app.
+```
+rly config init
+```
+
+To customize the memo when relaying packets:
+
+```
+rly config init --memo "My custom memo"
+```
+
+### Update the config.yaml file
+
+Add the configuration for the two chains we want to connect.
+In this example I'll connect our RPS chain to the Evmos testnet.
+
+```yaml
+chains:
+    evmos-testnet:
+        type: cosmos
+        value:
+            key-directory: /home/lb/.relayer/keys/evmos_9000-4
+            key: rly1
+            chain-id: evmos_9000-4
+            rpc-addr: https://evmos-testnet-rpc.polkachu.com:443
+            account-prefix: evmos
+            keyring-backend: test
+            gas-adjustment: 1.5
+            gas-prices: 40000000000atevmos
+            min-gas-amount: 1
+            max-gas-amount: 0
+            debug: false
+            timeout: 20s
+            block-timeout: ""
+            output-format: json
+            sign-mode: direct
+            extra-codecs:
+                - ethermint
+            coin-type: 60
+            signing-algorithm: ""
+            broadcast-mode: batch
+            min-loop-duration: 0s
+            extension-options: []
+            feegrants: null
+      rps:
+        type: cosmos
+        value:
+            key-directory: /home/lb/.relayer/keys/rps-1
+            key: rly1
+            chain-id: rps-1
+            rpc-addr: http://localhost:26657
+            account-prefix: rps
+            keyring-backend: test
+            gas-adjustment: 1.5
+            gas-prices: 0rps
+            min-gas-amount: 1
+            max-gas-amount: 0
+            debug: false
+            timeout: 20s
+            block-timeout: ""
+            output-format: json
+            sign-mode: direct
+            extra-codecs: []
+            coin-type: null
+            signing-algorithm: ""
+            broadcast-mode: batch
+            min-loop-duration: 0s
+            extension-options: []
+            feegrants: null            
+```
+
+### Setup accounts for each of the chains
+
+```
+rly keys add evmos-testnet rly1
+rly keys add rps rly1
+```
+
+### Fund accounts
+
+Send some funds to the relayer's accounts.
+For the evmos-testnet account, you can use [the faucet](https://faucet.evmos.dev/).
+Then, check the balance of these using the following commands:
+
+```
+rly q balance evmos-testnet
+rly q balance rps
+```
+
+### Create a new path for the desired chains
+
+Use the chain ids to create the new path
+
+```
+rly paths new evmos_9000-4 rps-1 demo-ibc-path
+```
+
+### Connect the chains
+
+Create the clients and open the connections using the command:
+
+```
+rly tx link demo-ibc-path
+```
+
+### Start relaying
+
+```
+rly start demo-ibc-path
+```
