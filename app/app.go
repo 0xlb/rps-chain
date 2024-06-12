@@ -295,7 +295,7 @@ func NewRPSApp(
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
 
-	transferStack := ibctransfer.NewIBCModule(app.TransferKeeper)
+	transferStack := rps.NewIBCMiddleware(ibctransfer.NewIBCModule(app.TransferKeeper), app.RPSKeeper)
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 
 	// Seal the IBC Router
